@@ -3,7 +3,7 @@
 Покрывает 100% требований спецификации.
 """
 import pytest
-from Egor.task import add_task, show_tasks, delete_task, toggle_task
+from task import add_task, show_tasks, delete_task, toggle_task
 
 
 # ============================================================
