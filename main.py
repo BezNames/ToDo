@@ -1,57 +1,32 @@
+"""Точка входа FastAPI-приложения.
+
+Запуск:  uvicorn main:app --reload --host 127.0.0.1 --port 8000
+Docs:    http://localhost:8000/docs
 """
-Главный модуль ToDo-приложения.
-Содержит меню и пользовательский интерфейс.
-"""
-from task import add_task, show_tasks, delete_task, toggle_task
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.routers import auth, tasks
+
+app = FastAPI(
+    title="ToDo API",
+    description="Веб-версия ToDo (FastAPI + MySQL). Пароли — bcrypt-хэш с солью.",
+    version="1.0.0",
+)
+
+# CORS — чтобы фронтенд (JS) мог обращаться к API с localhost
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5500", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth.router)
+app.include_router(tasks.router)
 
 
-def main() -> None:
-    tasks: list = []
-
-    while True:
-        print("\n=== ToDo ===")
-        print("1. Добавить задачу")
-        print("2. Показать задачи")
-        print("3. Удалить задачу")
-        print("4. Изменить статус")
-        print("5. Выход")
-
-        choice = input("Выберите действие: ")
-
-        if choice == "1":
-            title = input("Введите задачу: ")
-            try:
-                add_task(tasks, title)
-                print("Задача добавлена.")
-            except (TypeError, ValueError) as error:
-                print(f"Ошибка: {error}")
-
-        elif choice == "2":
-            show_tasks(tasks)
-
-        elif choice == "3":
-            show_tasks(tasks)
-            try:
-                index = int(input("Номер задачи: ")) - 1
-                delete_task(tasks, index)
-            except ValueError:
-                print("Введите число.")
-
-        elif choice == "4":
-            show_tasks(tasks)
-            try:
-                index = int(input("Номер задачи: ")) - 1
-                toggle_task(tasks, index)
-            except ValueError:
-                print("Введите число.")
-
-        elif choice == "5":
-            print("До свидания!")
-            break
-
-        else:
-            print("Неизвестная команда.")
-
-
-if __name__ == "__main__":
-    main()
+@app.get("/api/health", tags=["service"])
+def health():
+    return {"status": "ok"}
