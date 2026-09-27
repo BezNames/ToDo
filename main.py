@@ -27,6 +27,15 @@ app.include_router(auth.router)
 app.include_router(tasks.router)
 
 
+@app.get("/", include_in_schema=False)
+def root():
+    return {
+        "app": "ToDo API",
+        "docs": "/docs",
+        "health": "/api/health",
+    }
+
+
 @app.get("/api/health", tags=["service"])
 def health():
     return {"status": "ok"}
