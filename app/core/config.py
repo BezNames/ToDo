@@ -5,7 +5,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Настройки приложения, читаются из переменных окружения / .env."""
 
-    # База данных (MySQL)
+    # База данных. По умолчанию — локальный файл SQLite (без установки MySQL).
+    # Для MySQL раскомментируйте блок ниже в .env и поменяйте DATABASE_URL.
+    database_url: str = "sqlite:///./todo.db"
+
+    # Старые переменные MySQL (не используются, пока DATABASE_URL задан явно)
     db_host: str = "localhost"
     db_port: int = 3306
     db_user: str = "todo_user"
@@ -18,13 +22,6 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60 * 24  # сутки
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
-
-    @property
-    def database_url(self) -> str:
-        return (
-            f"mysql+pymysql://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
-        )
 
 
 settings = Settings()

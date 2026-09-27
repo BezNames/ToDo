@@ -21,3 +21,7 @@ env/
 Thumbs.db
 # Env
 .env
+
+# База данных SQLite (файл создаётся автоматически)
+todo.db
+*.db
