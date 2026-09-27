@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Модель задачи."""
 from datetime import datetime
 

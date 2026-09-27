@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Безопасность: хэширование паролей с солью и JWT-токены."""
 from datetime import datetime, timedelta, timezone
 

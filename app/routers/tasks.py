@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """CRUD-роутер задач. Все задачи привязаны к текущему пользователю."""
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session

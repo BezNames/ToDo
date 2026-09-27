@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Зависимость аутентификации: извлечение текущего пользователя из JWT."""
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer

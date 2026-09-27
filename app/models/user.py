@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Модель пользователя."""
 from datetime import datetime
 
