@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToDo — список задач</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
+</head>
+<body>
+
+  <!-- ===== Экран авторизации ===== -->
+  <div id="auth-screen" class="auth-screen hidden">
+    <div class="auth-card">
+      <div class="auth-logo">✅</div>
+      <h1 class="auth-title">Мои задачи</h1>
+      <p class="auth-subtitle">Простое и красивое приложение для планирования дня</p>
+
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active" type="button">Вход</button>
+        <button id="tab-register" class="auth-tab" type="button">Регистрация</button>
+      </div>
+
+      <!-- Форма входа -->
+      <form id="form-login" class="auth-form" autocomplete="off">
+        <label class="field">
+          <span class="field-label">Логин или e-mail</span>
+          <input class="input" type="text" id="login-username" placeholder="user или mail@example.com" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Пароль</span>
+          <input class="input" type="password" id="login-password" placeholder="••••••••" required>
+        </label>
+        <div id="login-error" class="form-error hidden"></div>
+        <button class="btn btn-primary btn-block" type="submit">Войти</button>
+      </form>
+
+      <!-- Форма регистрации -->
+      <form id="form-register" class="auth-form hidden" autocomplete="off">
+        <label class="field">
+          <span class="field-label">Имя пользователя</span>
+          <input class="input" type="text" id="reg-username" placeholder="от 3 символов" minlength="3" required>
+        </label>
+        <label class="field">
+          <span class="field-label">E-mail</span>
+          <input class="input" type="email" id="reg-email" placeholder="mail@example.com" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Пароль</span>
+          <input class="input" type="password" id="reg-password" placeholder="минимум 6 символов" minlength="6" required>
+        </label>
+        <div id="register-error" class="form-error hidden"></div>
+        <button class="btn btn-primary btn-block" type="submit">Создать аккаунт</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Основное приложение ===== -->
+  <div id="app-screen" class="app-layout hidden">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand"><span class="brand-icon">✅</span> Мои задачи</div>
+        <div class="user-box">
+          <span id="user-name" class="user-name"></span>
+          <button id="btn-logout" class="btn btn-ghost" type="button">Выйти</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Статистика -->
+      <section class="stats">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-label">Всего задач</div>
+        </div>
+        <div class="stat-card stat-active">
+          <div class="stat-num" id="stat-active">0</div>
+          <div class="stat-label">В работе</div>
+        </div>
+        <div class="stat-card stat-done">
+          <div class="stat-num" id="stat-done">0</div>
+          <div class="stat-label">Выполнено</div>
+        </div>
+      </section>
+
+      <!-- Добавление задачи -->
+      <section class="card add-card">
+        <form id="form-add" class="add-form">
+          <input class="input input-lg" type="text" id="new-title" placeholder="Что нужно сделать?" maxlength="200" required>
+          <button class="btn btn-primary btn-lg" type="submit">+ Добавить</button>
+        </form>
+        <input class="input input-desc hidden" type="text" id="new-desc" placeholder="Описание (необязательно)" maxlength="2000">
+        <button id="toggle-desc" class="link-btn" type="button">＋ добавить описание</button>
+      </section>
+
+      <!-- Панель фильтров -->
+      <section class="toolbar">
+        <div class="filter-tabs">
+          <button class="chip active" data-filter="all" type="button">Все</button>
+          <button class="chip" data-filter="active" type="button">Активные</button>
+          <button class="chip" data-filter="done" type="button">Выполненные</button>
+        </div>
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input class="input input-search" type="search" id="search-input" placeholder="Поиск задач...">
+        </div>
+      </section>
+
+      <!-- Список задач -->
+      <section id="task-list" class="task-list"></section>
+
+      <!-- Пустое состояние -->
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-emoji">🌿</div>
+        <p>Задач пока нет — самое время спланировать день!</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Модальное окно редактирования -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 class="modal-title">Редактировать задачу</h3>
+      <label class="field">
+        <span class="field-label">Название</span>
+        <input class="input" type="text" id="edit-title" maxlength="200" required>
+      </label>
+      <label class="field">
+        <span class="field-label">Описание</span>
+        <textarea class="input textarea" id="edit-desc" rows="3" maxlength="2000"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button id="edit-cancel" class="btn btn-ghost" type="button">Отмена</button>
+        <button id="edit-save" class="btn btn-primary" type="button">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast-уведомления -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -3,10 +3,16 @@
 Запуск:  uvicorn main:app --reload --host 127.0.0.1 --port 8000
 Docs:    http://localhost:8000/docs
 """
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from app.routers import auth, tasks
+
+BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(
     title="ToDo API",
@@ -29,11 +35,12 @@ app.include_router(tasks.router)
 
 @app.get("/", include_in_schema=False)
 def root():
-    return {
-        "app": "ToDo API",
-        "docs": "/docs",
-        "health": "/api/health",
-    }
+    """Главная страница — веб-приложение ToDo."""
+    return FileResponse(BASE_DIR / "static" / "index.html")
+
+
+# Статические файлы фронтенда (css/js)
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 
 @app.get("/api/health", tags=["service"])
