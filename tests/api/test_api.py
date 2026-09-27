@@ -128,3 +128,86 @@ def test_tasks_isolated_between_users(client):
     assert client.get(f"{PREFIX}/tasks", headers=h2).json() == []
     assert client.get(f"{PREFIX}/tasks/{tid}", headers=h2).status_code == 404
     assert client.delete(f"{PREFIX}/tasks/{tid}", headers=h2).status_code == 404
+
+
+# ---------- Новые фичи: приоритет, срок, длительность, статистика ----------
+
+def _create(client, H, **kw):
+    payload = {"title": kw.pop("title", "Задача"), "description": None}
+    payload.update(kw)
+    r = client.post("/api/tasks", json=payload, headers=H)
+    assert r.status_code == 201, r.text
+    return r.json()
+
+
+def test_task_defaults_and_fields(client):
+    H = auth_header(client)
+    t = _create(client, H, title="Купить хлеб")
+    assert t["priority"] == "medium"
+    assert t["due_date"] is None
+    assert t["duration_minutes"] is None
+
+
+def test_task_create_with_meta(client):
+    H = auth_header(client)
+    t = _create(client, H, title="Сделать уроки", priority="high",
+               due_date="2030-01-15", duration_minutes=45)
+    assert t["priority"] == "high"
+    assert t["due_date"] == "2030-01-15"
+    assert t["duration_minutes"] == 45
+
+
+def test_invalid_priority_rejected(client):
+    H = auth_header(client)
+    r = client.post("/api/tasks", json={"title": "x", "priority": "ultra"}, headers=H)
+    assert r.status_code == 422
+
+
+def test_duration_bounds(client):
+    H = auth_header(client)
+    r = client.post("/api/tasks", json={"title": "x", "duration_minutes": 99999}, headers=H)
+    assert r.status_code == 422
+
+
+def test_sort_by_priority(client):
+    H = auth_header(client)
+    _create(client, H, title="низкая", priority="low")
+    _create(client, H, title="высокая", priority="high")
+    _create(client, H, title="обычная", priority="medium")
+    r = client.get("/api/tasks", params={"sort": "priority"}, headers=H)
+    titles = [t["title"] for t in r.json()]
+    assert titles[:3] == ["высокая", "обычная", "низкая"] or set(titles[:3]) == {"высокая", "обычная", "низкая"}
+    order = [t["priority"] for t in r.json() if t["title"] in ("высокая", "обычная", "низкая")]
+    assert order == ["high", "medium", "low"]
+
+
+def test_overdue_filter_and_stats(client):
+    H = auth_header(client)
+    _create(client, H, title="просрочена", due_date="2020-01-01", duration_minutes=60)
+    _create(client, H, title="сегодня", due_date="2099-01-01", duration_minutes=30)
+    done = _create(client, H, title="готова", duration_minutes=999)
+    client.patch(f"/api/tasks/{done['id']}/toggle", headers=H)
+
+    r = client.get("/api/tasks", params={"overdue": True, "completed": False}, headers=H)
+    assert [t["title"] for t in r.json()] == ["просрочена"]
+
+    s = client.get("/api/tasks/stats", headers=H).json()
+    assert s["overdue"] >= 1
+    assert s["planned_minutes"] >= 90  # 60 + 30 (без выполненной)
+    assert s["total"] >= 3 and s["done"] >= 1
+
+
+def test_delete_completed(client):
+    H = auth_header(client)
+    a = _create(client, H, title="a")
+    b = _create(client, H, title="b")
+    c = _create(client, H, title="c")
+    client.patch(f"/api/tasks/{a['id']}/toggle", headers=H)
+    client.patch(f"/api/tasks/{b['id']}/toggle", headers=H)
+
+    r = client.delete("/api/tasks/done", headers=H)
+    assert r.status_code == 200
+    assert r.json()["deleted"] >= 2
+
+    left = client.get("/api/tasks", headers=H).json()
+    assert all(t["title"] != "a" for t in left)

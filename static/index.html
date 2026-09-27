@@ -84,16 +84,41 @@
           <div class="stat-num" id="stat-done">0</div>
           <div class="stat-label">Выполнено</div>
         </div>
+        <div class="stat-card stat-overdue">
+          <div class="stat-num" id="stat-overdue">0</div>
+          <div class="stat-label">Просрочено 🔥</div>
+        </div>
+        <div class="stat-card stat-planned">
+          <div class="stat-num" id="stat-planned">0 ч</div>
+          <div class="stat-label">Запланировано</div>
+        </div>
       </section>
 
       <!-- Добавление задачи -->
       <section class="card add-card">
         <form id="form-add" class="add-form">
-          <input class="input input-lg" type="text" id="new-title" placeholder="Что нужно сделать?" maxlength="200" required>
+          <input class="input input-lg" type="text" id="new-title" placeholder="Что нужно сделать? (Enter — добавить)" maxlength="200" required>
+          <select class="input select-priority" id="new-priority" title="Приоритет">
+            <option value="medium" selected>⚪ Обычный</option>
+            <option value="high">🔴 Высокий</option>
+            <option value="low">🟢 Низкий</option>
+          </select>
           <button class="btn btn-primary btn-lg" type="submit">+ Добавить</button>
         </form>
-        <input class="input input-desc hidden" type="text" id="new-desc" placeholder="Описание (необязательно)" maxlength="2000">
-        <button id="toggle-desc" class="link-btn" type="button">＋ добавить описание</button>
+        <div class="add-details hidden" id="add-details">
+          <input class="input input-desc" type="text" id="new-desc" placeholder="Описание (необязательно)" maxlength="2000">
+          <div class="add-meta">
+            <label class="meta-field">
+              <span class="field-label">Срок</span>
+              <input class="input" type="date" id="new-due">
+            </label>
+            <label class="meta-field">
+              <span class="field-label">Длительность, мин</span>
+              <input class="input" type="number" id="new-duration" min="1" max="1440" step="5" placeholder="напр. 30">
+            </label>
+          </div>
+        </div>
+        <button id="toggle-desc" class="link-btn" type="button">＋ детали: описание, срок, время</button>
       </section>
 
       <!-- Панель фильтров -->
@@ -102,15 +127,28 @@
           <button class="chip active" data-filter="all" type="button">Все</button>
           <button class="chip" data-filter="active" type="button">Активные</button>
           <button class="chip" data-filter="done" type="button">Выполненные</button>
+          <button class="chip chip-danger" data-filter="overdue" type="button">Просроченные</button>
         </div>
-        <div class="search-wrap">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input class="input input-search" type="search" id="search-input" placeholder="Поиск задач...">
+        <div class="toolbar-right">
+          <select class="input select-sort" id="sort-select" title="Сортировка">
+            <option value="created" selected>↓ Новые</option>
+            <option value="priority">⚡ По приоритету</option>
+            <option value="due">📅 По сроку</option>
+          </select>
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input class="input input-search" type="search" id="search-input" placeholder="Поиск задач...">
+          </div>
         </div>
       </section>
 
       <!-- Список задач -->
       <section id="task-list" class="task-list"></section>
+
+      <!-- Очистка выполненных -->
+      <div id="clear-done-wrap" class="clear-done hidden">
+        <button id="btn-clear-done" class="link-btn" type="button">🧹 Убрать выполненные</button>
+      </div>
 
       <!-- Пустое состояние -->
       <div id="empty-state" class="empty-state hidden">
@@ -132,6 +170,24 @@
         <span class="field-label">Описание</span>
         <textarea class="input textarea" id="edit-desc" rows="3" maxlength="2000"></textarea>
       </label>
+      <div class="add-meta">
+        <label class="field">
+          <span class="field-label">Приоритет</span>
+          <select class="input" id="edit-priority">
+            <option value="high">🔴 Высокий</option>
+            <option value="medium">⚪ Обычный</option>
+            <option value="low">🟢 Низкий</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Срок</span>
+          <input class="input" type="date" id="edit-due">
+        </label>
+        <label class="field">
+          <span class="field-label">Время, мин</span>
+          <input class="input" type="number" id="edit-duration" min="1" max="1440" step="5" placeholder="—">
+        </label>
+      </div>
       <div class="modal-actions">
         <button id="edit-cancel" class="btn btn-ghost" type="button">Отмена</button>
         <button id="edit-save" class="btn btn-primary" type="button">Сохранить</button>

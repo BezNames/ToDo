@@ -44,21 +44,28 @@ const API = {
   me() { return this.request('/api/auth/me'); },
 
   // Tasks
-  listTasks({ completed = null, search = '' } = {}) {
+  listTasks({ completed = null, search = '', priority = '', overdue = false, sort = 'created' } = {}) {
     const params = new URLSearchParams();
     if (completed !== null) params.set('completed', completed);
     if (search) params.set('search', search);
+    if (priority) params.set('priority', priority);
+    if (overdue) params.set('overdue', 'true');
+    if (sort && sort !== 'created') params.set('sort', sort);
     const qs = params.toString();
     return this.request('/api/tasks' + (qs ? '?' + qs : ''));
   },
-  createTask(title, description) {
-    return this.request('/api/tasks', { method: 'POST', body: JSON.stringify({ title, description: description || null }) });
+  stats() { return this.request('/api/tasks/stats'); },
+  createTask(data) {
+    return this.request('/api/tasks', { method: 'POST', body: JSON.stringify(data) });
   },
   updateTask(id, data) {
     return this.request('/api/tasks/' + id, { method: 'PUT', body: JSON.stringify(data) });
   },
   toggleTask(id) {
     return this.request('/api/tasks/' + id + '/toggle', { method: 'PATCH' });
+  },
+  deleteCompleted() {
+    return this.request('/api/tasks/done', { method: 'DELETE' });
   },
   deleteTask(id) {
     return this.request('/api/tasks/' + id, { method: 'DELETE' });
