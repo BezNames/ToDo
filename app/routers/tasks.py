@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 """CRUD-роутер задач. Все задачи привязаны к текущему пользователю."""
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -20,10 +19,10 @@ def _get_owned_task(task_id: int, db: Session, user: User) -> Task:
     return task
 
 
-@router.get("", response_model=list[TaskOut])
+@router.get("", response_model=List[TaskOut])
 def list_tasks(
-    completed: bool | None = Query(default=None),
-    search: str | None = Query(default=None, max_length=200),
+    completed: Optional[bool] = Query(default=None),
+    search: Optional[str] = Query(default=None, max_length=200),
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
     db: Session = Depends(get_db),

@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 """Зависимость аутентификации: извлечение текущего пользователя из JWT."""
+from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -19,7 +18,7 @@ CREDENTIALS_ERROR = HTTPException(
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> User:
     """Вернуть пользователя по токену из заголовка Authorization: Bearer <token>."""

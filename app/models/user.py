@@ -1,12 +1,14 @@
-from __future__ import annotations
-
 """Модель пользователя."""
 from datetime import datetime
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+
+if TYPE_CHECKING:
+    from app.models.task import Task
 
 
 class User(Base):
@@ -21,6 +23,6 @@ class User(Base):
         DateTime, server_default=func.now()
     )
 
-    tasks: Mapped[list["Task"]] = relationship(
+    tasks: Mapped[List["Task"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
     )
